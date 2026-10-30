@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   Phone,
@@ -11,12 +10,29 @@ import {
   Menu,
   X,
   ChevronDown,
+  ChevronRight,
   ArrowRight,
   MessageCircle,
   Package,
   Layers,
-  Sparkles,
-  ShieldCheck
+  ShieldCheck,
+  Cylinder,
+  Circle,
+  Disc,
+  Shapes,
+  PanelsTopLeft,
+  Box,
+  Waves,
+  Scroll,
+  Grid3X3,
+  CircleDot,
+  ShoppingBag,
+  Paperclip,
+  Truck,
+  Settings,
+  Leaf,
+  FileText,
+  LucideIcon
 } from "lucide-react";
 import { COMPANY } from "@/data/company";
 import { PRODUCTS } from "@/data/products";
@@ -25,22 +41,295 @@ interface HeaderProps {
   onOpenQuoteModal: (productName?: string) => void;
 }
 
+interface ProductMegaMeta {
+  icon: LucideIcon;
+  shortDesc: string;
+  bgClass: string;
+  iconClass: string;
+  hoverBgClass: string;
+  hoverBorderClass: string;
+}
+
+const PRODUCT_MEGA_META: Record<string, ProductMegaMeta> = {
+  // Column 1: Paper Tubes & Paper Cores (13)
+  "paper-tubes": {
+    icon: Cylinder,
+    shortDesc: "Industrial paper tubes",
+    bgClass: "bg-[#FDF5EC] border-[#F5E3CE]",
+    iconClass: "text-[#9A5B25]",
+    hoverBgClass: "group-hover:bg-[#F9E8D4]",
+    hoverBorderClass: "group-hover:border-[#E6C59E]"
+  },
+  "paper-cores": {
+    icon: Circle,
+    shortDesc: "Paper cores for industrial use",
+    bgClass: "bg-[#FDF5EC] border-[#F5E3CE]",
+    iconClass: "text-[#9A5B25]",
+    hoverBgClass: "group-hover:bg-[#F9E8D4]",
+    hoverBorderClass: "group-hover:border-[#E6C59E]"
+  },
+  "textile-tubes": {
+    icon: Layers,
+    shortDesc: "Tubes for textile industry",
+    bgClass: "bg-[#EFF6FF] border-[#DBEAFE]",
+    iconClass: "text-[#1D4ED8]",
+    hoverBgClass: "group-hover:bg-[#DBEAFE]",
+    hoverBorderClass: "group-hover:border-[#93C5FD]"
+  },
+  "bopp-cello-tape-cores": {
+    icon: Disc,
+    shortDesc: "Cores for adhesive tapes",
+    bgClass: "bg-[#FEF2F2] border-[#FECACA]",
+    iconClass: "text-[#DC2626]",
+    hoverBgClass: "group-hover:bg-[#FEE2E2]",
+    hoverBorderClass: "group-hover:border-[#FCA5A5]"
+  },
+  "stretch-film-paper-tubes": {
+    icon: Package,
+    shortDesc: "Cores for stretch film",
+    bgClass: "bg-[#EEFBF3] border-[#D1FAE5]",
+    iconClass: "text-[#15803D]",
+    hoverBgClass: "group-hover:bg-[#DCFCE7]",
+    hoverBorderClass: "group-hover:border-[#86EFAC]"
+  },
+  "bubble-wrap-cores": {
+    icon: Package,
+    shortDesc: "Cores for bubble wrap",
+    bgClass: "bg-[#EFF6FF] border-[#DBEAFE]",
+    iconClass: "text-[#1D4ED8]",
+    hoverBgClass: "group-hover:bg-[#DBEAFE]",
+    hoverBorderClass: "group-hover:border-[#93C5FD]"
+  },
+  "tissue-paper-cores": {
+    icon: Layers,
+    shortDesc: "Cores for tissue paper",
+    bgClass: "bg-[#F5F3FF] border-[#EDE9FE]",
+    iconClass: "text-[#6D28D9]",
+    hoverBgClass: "group-hover:bg-[#EDE9FE]",
+    hoverBorderClass: "group-hover:border-[#C4B5FD]"
+  },
+  "foil-cores": {
+    icon: Cylinder,
+    shortDesc: "Cores for aluminium foil",
+    bgClass: "bg-[#F1F5F9] border-[#E2E8F0]",
+    iconClass: "text-[#334155]",
+    hoverBgClass: "group-hover:bg-[#E2E8F0]",
+    hoverBorderClass: "group-hover:border-[#CBD5E1]"
+  },
+  "silver-foil-cores": {
+    icon: Circle,
+    shortDesc: "Cores for silver foil",
+    bgClass: "bg-[#FDF5EC] border-[#F5E3CE]",
+    iconClass: "text-[#B45309]",
+    hoverBgClass: "group-hover:bg-[#F9E8D4]",
+    hoverBorderClass: "group-hover:border-[#E6C59E]"
+  },
+  "pvc-roll-cores": {
+    icon: Disc,
+    shortDesc: "Cores for PVC rolls",
+    bgClass: "bg-[#EEFBF3] border-[#D1FAE5]",
+    iconClass: "text-[#15803D]",
+    hoverBgClass: "group-hover:bg-[#DCFCE7]",
+    hoverBorderClass: "group-hover:border-[#86EFAC]"
+  },
+  "incense-stick-tubes": {
+    icon: Package,
+    shortDesc: "Tubes for incense sticks",
+    bgClass: "bg-[#FEF2F2] border-[#FECACA]",
+    iconClass: "text-[#C2410C]",
+    hoverBgClass: "group-hover:bg-[#FEE2E2]",
+    hoverBorderClass: "group-hover:border-[#FCA5A5]"
+  },
+  "dty-poy-textile-yarn-cones": {
+    icon: Shapes,
+    shortDesc: "Cones for yarn winding",
+    bgClass: "bg-[#F5F3FF] border-[#EDE9FE]",
+    iconClass: "text-[#6D28D9]",
+    hoverBgClass: "group-hover:bg-[#EDE9FE]",
+    hoverBorderClass: "group-hover:border-[#C4B5FD]"
+  },
+  "firecracker-tubes": {
+    icon: Cylinder,
+    shortDesc: "Tubes for firecracker industry",
+    bgClass: "bg-[#F5F3FF] border-[#EDE9FE]",
+    iconClass: "text-[#5B21B6]",
+    hoverBgClass: "group-hover:bg-[#EDE9FE]",
+    hoverBorderClass: "group-hover:border-[#C4B5FD]"
+  },
+
+  // Column 2: Corrugated Packaging (6)
+  "corrugated-sheets": {
+    icon: Layers,
+    shortDesc: "High-strength sheets",
+    bgClass: "bg-[#FDF5EC] border-[#F5E3CE]",
+    iconClass: "text-[#9A5B25]",
+    hoverBgClass: "group-hover:bg-[#F9E8D4]",
+    hoverBorderClass: "group-hover:border-[#E6C59E]"
+  },
+  "corrugated-liners": {
+    icon: PanelsTopLeft,
+    shortDesc: "Liners for packaging",
+    bgClass: "bg-[#FDF5EC] border-[#F5E3CE]",
+    iconClass: "text-[#9A5B25]",
+    hoverBgClass: "group-hover:bg-[#F9E8D4]",
+    hoverBorderClass: "group-hover:border-[#E6C59E]"
+  },
+  "corrugated-boxes": {
+    icon: Package,
+    shortDesc: "Custom corrugated boxes",
+    bgClass: "bg-[#FDF5EC] border-[#F5E3CE]",
+    iconClass: "text-[#9A5B25]",
+    hoverBgClass: "group-hover:bg-[#F9E8D4]",
+    hoverBorderClass: "group-hover:border-[#E6C59E]"
+  },
+  "cardboard-containers": {
+    icon: Box,
+    shortDesc: "Sturdy cardboard containers",
+    bgClass: "bg-[#FDF5EC] border-[#F5E3CE]",
+    iconClass: "text-[#9A5B25]",
+    hoverBgClass: "group-hover:bg-[#F9E8D4]",
+    hoverBorderClass: "group-hover:border-[#E6C59E]"
+  },
+  "mdf-board-putha": {
+    icon: Layers,
+    shortDesc: "MDF boards for packaging",
+    bgClass: "bg-[#FDF5EC] border-[#F5E3CE]",
+    iconClass: "text-[#9A5B25]",
+    hoverBgClass: "group-hover:bg-[#F9E8D4]",
+    hoverBorderClass: "group-hover:border-[#E6C59E]"
+  },
+  "sundry-board-putha": {
+    icon: PanelsTopLeft,
+    shortDesc: "Sundry boards for industrial use",
+    bgClass: "bg-[#FDF5EC] border-[#F5E3CE]",
+    iconClass: "text-[#9A5B25]",
+    hoverBgClass: "group-hover:bg-[#F9E8D4]",
+    hoverBorderClass: "group-hover:border-[#E6C59E]"
+  },
+
+  // Column 3: Other Packaging (7)
+  "air-bubble-roll": {
+    icon: Waves,
+    shortDesc: "Protective bubble rolls",
+    bgClass: "bg-[#EEFBF3] border-[#D1FAE5]",
+    iconClass: "text-[#15803D]",
+    hoverBgClass: "group-hover:bg-[#DCFCE7]",
+    hoverBorderClass: "group-hover:border-[#86EFAC]"
+  },
+  "ldpe-hm-rolls": {
+    icon: Scroll,
+    shortDesc: "Plastic rolls for packaging",
+    bgClass: "bg-[#EEFBF3] border-[#D1FAE5]",
+    iconClass: "text-[#15803D]",
+    hoverBgClass: "group-hover:bg-[#DCFCE7]",
+    hoverBorderClass: "group-hover:border-[#86EFAC]"
+  },
+  "pp-woven-fabric-bardan": {
+    icon: Grid3X3,
+    shortDesc: "Woven fabric for packaging",
+    bgClass: "bg-[#EEFBF3] border-[#D1FAE5]",
+    iconClass: "text-[#15803D]",
+    hoverBgClass: "group-hover:bg-[#DCFCE7]",
+    hoverBorderClass: "group-hover:border-[#86EFAC]"
+  },
+  "taco-tape": {
+    icon: CircleDot,
+    shortDesc: "High-quality taco tape",
+    bgClass: "bg-[#EEFBF3] border-[#D1FAE5]",
+    iconClass: "text-[#15803D]",
+    hoverBgClass: "group-hover:bg-[#DCFCE7]",
+    hoverBorderClass: "group-hover:border-[#86EFAC]"
+  },
+  "stretch-film": {
+    icon: Package,
+    shortDesc: "Stretch film for packaging",
+    bgClass: "bg-[#EEFBF3] border-[#D1FAE5]",
+    iconClass: "text-[#15803D]",
+    hoverBgClass: "group-hover:bg-[#DCFCE7]",
+    hoverBorderClass: "group-hover:border-[#86EFAC]"
+  },
+  "plastic-bag": {
+    icon: ShoppingBag,
+    shortDesc: "Durable plastic bags",
+    bgClass: "bg-[#EEFBF3] border-[#D1FAE5]",
+    iconClass: "text-[#15803D]",
+    hoverBgClass: "group-hover:bg-[#DCFCE7]",
+    hoverBorderClass: "group-hover:border-[#86EFAC]"
+  },
+  "metal-clip": {
+    icon: Paperclip,
+    shortDesc: "Clips for secure packaging",
+    bgClass: "bg-[#EEFBF3] border-[#D1FAE5]",
+    iconClass: "text-[#15803D]",
+    hoverBgClass: "group-hover:bg-[#DCFCE7]",
+    hoverBorderClass: "group-hover:border-[#86EFAC]"
+  }
+};
+
+function getProductMegaMeta(slug: string): ProductMegaMeta {
+  return (
+    PRODUCT_MEGA_META[slug] || {
+      icon: Package,
+      shortDesc: "Industrial packaging solution",
+      bgClass: "bg-[#FDF5EC] border-[#F5E3CE]",
+      iconClass: "text-[#9A5B25]",
+      hoverBgClass: "group-hover:bg-[#F9E8D4]",
+      hoverBorderClass: "group-hover:border-[#E6C59E]"
+    }
+  );
+}
+
 export default function Header({ onOpenQuoteModal }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileProductsOpen, setMobileProductsOpen] = useState(false);
   const [productsMegaOpen, setProductsMegaOpen] = useState(false);
+  const [headerBottomOffset, setHeaderBottomOffset] = useState<number>(80);
+  const headerRef = useRef<HTMLElement | null>(null);
+  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pathname = usePathname();
 
+  const updateHeaderOffset = () => {
+    if (headerRef.current) {
+      const rect = headerRef.current.getBoundingClientRect();
+      setHeaderBottomOffset(Math.max(Math.round(rect.bottom), 56));
+    }
+  };
+
+  const handleMegaEnter = () => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+    updateHeaderOffset();
+    setProductsMegaOpen(true);
+  };
+
+  const handleMegaLeave = () => {
+    closeTimeoutRef.current = setTimeout(() => {
+      setProductsMegaOpen(false);
+    }, 130);
+  };
+
   useEffect(() => {
-    const handleScroll = () => {
+    const handleScrollOrResize = () => {
       setIsScrolled(window.scrollY > 20);
+      if (headerRef.current) {
+        const rect = headerRef.current.getBoundingClientRect();
+        setHeaderBottomOffset(Math.max(Math.round(rect.bottom), 56));
+      }
     };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    handleScrollOrResize();
+    window.addEventListener("scroll", handleScrollOrResize, { passive: true });
+    window.addEventListener("resize", handleScrollOrResize, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScrollOrResize);
+      window.removeEventListener("resize", handleScrollOrResize);
+      if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
+    };
   }, []);
 
-  // Close mobile menu on route change
+  // Close menus on route change
   useEffect(() => {
     setMobileMenuOpen(false);
     setProductsMegaOpen(false);
@@ -102,6 +391,7 @@ export default function Header({ onOpenQuoteModal }: HeaderProps) {
 
       {/* Main Sticky Header */}
       <header
+        ref={headerRef}
         className={`sticky top-0 z-40 w-full transition-all duration-300 ${
           isScrolled
             ? "bg-white/95 backdrop-blur-md shadow-md py-3 border-b border-slate-200"
@@ -144,11 +434,11 @@ export default function Header({ onOpenQuoteModal }: HeaderProps) {
               About Us
             </Link>
 
-            {/* Products with Mega Menu */}
+            {/* Products with Premium International B2B Mega Menu */}
             <div
-              className="relative"
-              onMouseEnter={() => setProductsMegaOpen(true)}
-              onMouseLeave={() => setProductsMegaOpen(false)}
+              className="static"
+              onMouseEnter={handleMegaEnter}
+              onMouseLeave={handleMegaLeave}
             >
               <Link
                 href="/products"
@@ -166,138 +456,268 @@ export default function Header({ onOpenQuoteModal }: HeaderProps) {
                 />
               </Link>
 
-              {/* Mega Menu Dropdown */}
+              {/* Mega Menu Dropdown Container — Compact, Balanced & Zero Internal Scroll */}
               {productsMegaOpen && (
-                <div className="absolute top-full left-1/2 -translate-x-1/2 w-[960px] max-w-[94vw] bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 grid grid-cols-12 gap-6 transition-all duration-200 animate-in fade-in slide-in-from-top-2 z-50">
-                  {/* Column 1 & 2: Paper Tubes & Cores (7 cols, 2 sub-columns) */}
-                  <div className="col-span-7 border-r border-slate-100 pr-5">
-                    <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
-                      <div className="flex items-center gap-2">
-                        <Package className="w-4 h-4 text-kraft-600" />
-                        <span className="text-xs font-bold uppercase tracking-wider text-industrial-900">
-                          Paper Tubes &amp; Paper Cores ({tubeCoreProducts.length})
-                        </span>
-                      </div>
-                      <Link
-                        href="/products"
-                        className="text-[11px] font-bold text-kraft-700 hover:underline inline-flex items-center gap-1"
-                      >
-                        View All {PRODUCTS.length} Products <ArrowRight className="w-3 h-3" />
-                      </Link>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
-                      {tubeCoreProducts.map((prod) => (
-                        <Link
-                          key={prod.slug}
-                          href={`/products/${prod.slug}`}
-                          className="group flex items-center gap-2.5 p-1.5 rounded-lg hover:bg-kraft-50 transition-colors"
-                        >
-                          <div className="relative w-8 h-8 rounded bg-slate-50 border border-slate-200 shrink-0 overflow-hidden flex items-center justify-center">
-                            <Image
-                              src={prod.image}
-                              alt={prod.name}
-                              fill
-                              sizes="32px"
-                              className="object-contain p-0.5"
-                            />
+                <div
+                  onMouseEnter={handleMegaEnter}
+                  onMouseLeave={handleMegaLeave}
+                  className="absolute left-1/2 -translate-x-1/2 top-full pt-1 w-[1080px] xl:w-[1140px] max-w-[calc(100vw-24px)] z-50 animate-in fade-in slide-in-from-top-1 duration-150 overflow-visible"
+                >
+                  <div className="bg-white rounded-2xl shadow-[0_20px_50px_-12px_rgba(15,23,42,0.2)] border border-slate-200/90 px-5 py-3.5 overflow-visible">
+                    {/* Three Main Columns */}
+                    <div className="grid grid-cols-12 gap-4 xl:gap-5 overflow-visible">
+                      {/* COLUMN 1: PAPER TUBES & PAPER CORES (13) */}
+                      <div className="col-span-6 border-r border-slate-200/75 pr-4 xl:pr-5">
+                        {/* Compact Category Header */}
+                        <div className="flex items-center justify-between gap-2 pb-2 mb-1.5 border-b border-[#EED7BE]">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="w-8 h-8 rounded-lg bg-[#FDF5EC] border border-[#F2DEC4] flex items-center justify-center text-[#9A5B25] shrink-0">
+                              <Cylinder className="w-4 h-4" strokeWidth={1.9} />
+                            </div>
+                            <div className="min-w-0">
+                              <h3 className="text-xs font-extrabold uppercase tracking-wide text-industrial-950 leading-none">
+                                Paper Tubes &amp; Paper Cores ({tubeCoreProducts.length})
+                              </h3>
+                              <p className="text-[10.5px] text-slate-500 mt-0.5 leading-tight truncate">
+                                High-strength paper tubes and cores for diverse industrial applications
+                              </p>
+                            </div>
                           </div>
-                          <span className="text-xs font-semibold text-slate-700 group-hover:text-kraft-700 leading-tight">
-                            {prod.name}
-                          </span>
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
 
-                  {/* Column 3: Corrugated Packaging & Other Packaging Products (5 cols) */}
-                  <div className="col-span-5 flex flex-col justify-between">
-                    <div className="grid grid-cols-2 gap-4">
-                      {/* Corrugated Packaging */}
-                      <div>
-                        <div className="flex items-center gap-1.5 pb-2.5 mb-2.5 border-b border-slate-100">
-                          <Layers className="w-4 h-4 text-kraft-600 shrink-0" />
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-industrial-900">
-                            Corrugated Packaging
-                          </span>
+                          <Link
+                            href="/products"
+                            onClick={() => setProductsMegaOpen(false)}
+                            className="text-[11px] font-bold text-[#A66324] hover:text-[#844B16] inline-flex items-center gap-1 shrink-0 transition-colors group/viewall"
+                          >
+                            <span>View All {PRODUCTS.length} Products</span>
+                            <ArrowRight className="w-3 h-3 transition-transform duration-200 group-hover/viewall:translate-x-0.5" />
+                          </Link>
                         </div>
-                        <ul className="space-y-1.5">
-                          {corrugatedProducts.map((prod) => (
-                            <li key={prod.slug}>
+
+                        {/* Compact Two-Column Product Grid */}
+                        <div className="grid grid-cols-2 gap-x-2.5 gap-y-0.5">
+                          {tubeCoreProducts.map((prod) => {
+                            const meta = getProductMegaMeta(prod.slug);
+                            const IconComponent = meta.icon;
+                            return (
                               <Link
+                                key={prod.slug}
                                 href={`/products/${prod.slug}`}
-                                className="group flex items-center gap-2 p-1 rounded-lg hover:bg-kraft-50 transition-colors"
+                                onClick={() => setProductsMegaOpen(false)}
+                                className="group flex items-center justify-between gap-2 px-2 py-1 rounded-lg border border-transparent hover:bg-slate-50/90 hover:border-slate-200/80 transition-all duration-150"
                               >
-                                <div className="relative w-7 h-7 rounded bg-slate-50 border border-slate-200 shrink-0 overflow-hidden">
-                                  <Image
-                                    src={prod.image}
-                                    alt={prod.name}
-                                    fill
-                                    sizes="28px"
-                                    className="object-contain p-0.5"
-                                  />
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <div
+                                    className={`w-7 h-7 rounded-lg border ${meta.bgClass} ${meta.hoverBgClass} ${meta.hoverBorderClass} flex items-center justify-center shrink-0 transition-all duration-150`}
+                                  >
+                                    <IconComponent
+                                      className={`w-3.5 h-3.5 ${meta.iconClass} transition-transform duration-150 group-hover:scale-110`}
+                                      strokeWidth={1.85}
+                                    />
+                                  </div>
+                                  <div className="min-w-0">
+                                    <div className="text-[12px] font-bold text-industrial-950 group-hover:text-[#9A5B25] transition-colors leading-tight truncate">
+                                      {prod.name}
+                                    </div>
+                                    <div className="text-[10px] text-slate-500 leading-tight truncate">
+                                      {meta.shortDesc}
+                                    </div>
+                                  </div>
                                 </div>
-                                <span className="text-xs font-semibold text-slate-700 group-hover:text-kraft-700 leading-tight">
-                                  {prod.shortName}
-                                </span>
+
+                                <ChevronRight className="w-3 h-3 text-slate-400 group-hover:text-[#9A5B25] group-hover:translate-x-0.5 transition-all duration-150 shrink-0" />
                               </Link>
-                            </li>
-                          ))}
-                        </ul>
+                            );
+                          })}
+                        </div>
                       </div>
 
-                      {/* Other Packaging Products */}
-                      <div>
-                        <div className="flex items-center gap-1.5 pb-2.5 mb-2.5 border-b border-slate-100">
-                          <Sparkles className="w-4 h-4 text-kraft-600 shrink-0" />
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-industrial-900">
-                            Other Packaging
-                          </span>
+                      {/* COLUMN 2: CORRUGATED PACKAGING */}
+                      <div className="col-span-3 border-r border-slate-200/75 pr-4 xl:pr-5">
+                        {/* Compact Category Header */}
+                        <div className="flex items-center gap-2.5 pb-2 mb-1.5 border-b border-[#EED7BE]">
+                          <div className="w-8 h-8 rounded-lg bg-[#FDF5EC] border border-[#F2DEC4] flex items-center justify-center text-[#9A5B25] shrink-0">
+                            <Box className="w-4 h-4" strokeWidth={1.9} />
+                          </div>
+                          <div className="min-w-0">
+                            <h3 className="text-xs font-extrabold uppercase tracking-wide text-industrial-950 leading-none">
+                              Corrugated Packaging
+                            </h3>
+                            <p className="text-[10.5px] text-slate-500 mt-0.5 leading-tight truncate">
+                              Durable and sustainable corrugated solutions
+                            </p>
+                          </div>
                         </div>
-                        <ul className="space-y-1.5">
-                          {otherPackagingProducts.map((prod) => (
-                            <li key={prod.slug}>
+
+                        {/* Compact Product List */}
+                        <div className="space-y-0.5">
+                          {corrugatedProducts.map((prod) => {
+                            const meta = getProductMegaMeta(prod.slug);
+                            const IconComponent = meta.icon;
+                            return (
                               <Link
+                                key={prod.slug}
                                 href={`/products/${prod.slug}`}
-                                className="group flex items-center gap-2 p-1 rounded-lg hover:bg-kraft-50 transition-colors"
+                                onClick={() => setProductsMegaOpen(false)}
+                                className="group flex items-center justify-between gap-2 px-2 py-1 rounded-lg border border-transparent hover:bg-slate-50/90 hover:border-slate-200/80 transition-all duration-150"
                               >
-                                <div className="relative w-7 h-7 rounded bg-slate-50 border border-slate-200 shrink-0 overflow-hidden">
-                                  <Image
-                                    src={prod.image}
-                                    alt={prod.name}
-                                    fill
-                                    sizes="28px"
-                                    className="object-contain p-0.5"
-                                  />
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <div
+                                    className={`w-7 h-7 rounded-lg border ${meta.bgClass} ${meta.hoverBgClass} ${meta.hoverBorderClass} flex items-center justify-center shrink-0 transition-all duration-150`}
+                                  >
+                                    <IconComponent
+                                      className={`w-3.5 h-3.5 ${meta.iconClass} transition-transform duration-150 group-hover:scale-110`}
+                                      strokeWidth={1.85}
+                                    />
+                                  </div>
+                                  <div className="min-w-0">
+                                    <div className="text-[12px] font-bold text-industrial-950 group-hover:text-[#9A5B25] transition-colors leading-tight truncate">
+                                      {prod.shortName}
+                                    </div>
+                                    <div className="text-[10px] text-slate-500 leading-tight truncate">
+                                      {meta.shortDesc}
+                                    </div>
+                                  </div>
                                 </div>
-                                <span className="text-xs font-semibold text-slate-700 group-hover:text-kraft-700 leading-tight">
-                                  {prod.shortName}
-                                </span>
+
+                                <ChevronRight className="w-3 h-3 text-slate-400 group-hover:text-[#9A5B25] group-hover:translate-x-0.5 transition-all duration-150 shrink-0" />
                               </Link>
-                            </li>
-                          ))}
-                        </ul>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* COLUMN 3: OTHER PACKAGING */}
+                      <div className="col-span-3">
+                        {/* Compact Category Header */}
+                        <div className="flex items-center gap-2.5 pb-2 mb-1.5 border-b border-[#BCEAD5]">
+                          <div className="w-8 h-8 rounded-lg bg-[#EEFBF3] border border-[#D1FAE5] flex items-center justify-center text-[#15803D] shrink-0">
+                            <Package className="w-4 h-4" strokeWidth={1.9} />
+                          </div>
+                          <div className="min-w-0">
+                            <h3 className="text-xs font-extrabold uppercase tracking-wide text-industrial-950 leading-none">
+                              Other Packaging
+                            </h3>
+                            <p className="text-[10.5px] text-slate-500 mt-0.5 leading-tight truncate">
+                              Wide range of packaging materials and accessories
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Compact Product List */}
+                        <div className="space-y-0.5">
+                          {otherPackagingProducts.map((prod) => {
+                            const meta = getProductMegaMeta(prod.slug);
+                            const IconComponent = meta.icon;
+                            return (
+                              <Link
+                                key={prod.slug}
+                                href={`/products/${prod.slug}`}
+                                onClick={() => setProductsMegaOpen(false)}
+                                className="group flex items-center justify-between gap-2 px-2 py-1 rounded-lg border border-transparent hover:bg-slate-50/90 hover:border-slate-200/80 transition-all duration-150"
+                              >
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <div
+                                    className={`w-7 h-7 rounded-lg border ${meta.bgClass} ${meta.hoverBgClass} ${meta.hoverBorderClass} flex items-center justify-center shrink-0 transition-all duration-150`}
+                                  >
+                                    <IconComponent
+                                      className={`w-3.5 h-3.5 ${meta.iconClass} transition-transform duration-150 group-hover:scale-110`}
+                                      strokeWidth={1.85}
+                                    />
+                                  </div>
+                                  <div className="min-w-0">
+                                    <div className="text-[12px] font-bold text-industrial-950 group-hover:text-[#15803D] transition-colors leading-tight truncate">
+                                      {prod.shortName}
+                                    </div>
+                                    <div className="text-[10px] text-slate-500 leading-tight truncate">
+                                      {meta.shortDesc}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <ChevronRight className="w-3 h-3 text-slate-400 group-hover:text-[#15803D] group-hover:translate-x-0.5 transition-all duration-150 shrink-0" />
+                              </Link>
+                            );
+                          })}
+                        </div>
                       </div>
                     </div>
 
-                    {/* Quick Specs Highlight Box */}
-                    <div className="mt-4 p-3 bg-industrial-50 rounded-xl border border-industrial-100 flex items-center justify-between gap-3">
-                      <div className="text-xs">
-                        <p className="font-bold text-industrial-900">
-                          48-Hour Order Turnaround
-                        </p>
-                        <p className="text-[11px] text-slate-500">
-                          14–100 mm tubes • Boxes up to 52&quot;
-                        </p>
+                    {/* COMPACT BOTTOM FEATURE BAR */}
+                    <div className="mt-2.5 bg-[#F4F7FB] border border-[#E2E8F0] rounded-xl px-4 py-2 flex items-center justify-between gap-3">
+                      <div className="grid grid-cols-4 gap-0 divide-x divide-slate-200/90 flex-1">
+                        {/* 1. 48-Hour Order Turnaround */}
+                        <div className="flex items-center gap-2 pr-3">
+                          <div className="w-7 h-7 rounded-full bg-white border border-slate-200/90 shadow-2xs flex items-center justify-center text-[#1D4ED8] shrink-0">
+                            <Truck className="w-3.5 h-3.5" strokeWidth={1.9} />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="text-[11px] font-extrabold text-[#1E3A8A] leading-tight truncate">
+                              48-Hour Order Turnaround
+                            </div>
+                            <div className="text-[10px] text-slate-500 leading-tight truncate">
+                              14–100 mm tubes • Boxes up to 52&quot;
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* 2. Custom Sizes & Specifications */}
+                        <div className="flex items-center gap-2 px-3">
+                          <div className="w-7 h-7 rounded-full bg-white border border-slate-200/90 shadow-2xs flex items-center justify-center text-[#1D4ED8] shrink-0">
+                            <Settings className="w-3.5 h-3.5" strokeWidth={1.9} />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="text-[11px] font-extrabold text-[#1E3A8A] leading-tight truncate">
+                              Custom Sizes &amp; Specifications
+                            </div>
+                            <div className="text-[10px] text-slate-500 leading-tight truncate">
+                              As per your requirement
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* 3. Consistent Quality & Strength */}
+                        <div className="flex items-center gap-2 px-3">
+                          <div className="w-7 h-7 rounded-full bg-white border border-slate-200/90 shadow-2xs flex items-center justify-center text-[#1D4ED8] shrink-0">
+                            <ShieldCheck className="w-3.5 h-3.5" strokeWidth={1.9} />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="text-[11px] font-extrabold text-[#1E3A8A] leading-tight truncate">
+                              Consistent Quality &amp; Strength
+                            </div>
+                            <div className="text-[10px] text-slate-500 leading-tight truncate">
+                              For industrial applications
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* 4. Sustainable Packaging Solutions */}
+                        <div className="flex items-center gap-2 pl-3">
+                          <div className="w-7 h-7 rounded-full bg-white border border-slate-200/90 shadow-2xs flex items-center justify-center text-[#15803D] shrink-0">
+                            <Leaf className="w-3.5 h-3.5" strokeWidth={1.9} />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="text-[11px] font-extrabold text-[#1E3A8A] leading-tight truncate">
+                              Sustainable Packaging Solutions
+                            </div>
+                            <div className="text-[10px] text-slate-500 leading-tight truncate">
+                              Eco-friendly and recyclable
+                            </div>
+                          </div>
+                        </div>
                       </div>
+
+                      {/* Compact Custom Quote CTA Button */}
                       <button
                         onClick={() => {
                           setProductsMegaOpen(false);
                           onOpenQuoteModal();
                         }}
-                        className="px-3 py-1.5 rounded-lg bg-kraft-600 hover:bg-kraft-700 text-white text-xs font-bold shrink-0 inline-flex items-center gap-1 transition-colors"
+                        className="px-4 py-2 rounded-lg bg-[#A66324] hover:bg-[#8E521B] active:bg-[#7A4515] text-white text-xs font-bold shrink-0 inline-flex items-center gap-1.5 shadow-sm shadow-[#A66324]/20 hover:shadow transition-all duration-150 cursor-pointer group/cta"
                       >
-                        Custom Quote <ArrowRight className="w-3 h-3" />
+                        <FileText className="w-3.5 h-3.5 text-[#FDE68A]" strokeWidth={2} />
+                        <span>Custom Quote</span>
+                        <ArrowRight className="w-3.5 h-3.5 transition-transform duration-150 group-hover/cta:translate-x-0.5" />
                       </button>
                     </div>
                   </div>
@@ -437,7 +857,7 @@ export default function Header({ onOpenQuoteModal }: HeaderProps) {
                 About Us
               </Link>
 
-              {/* Products Collapsible in Mobile */}
+              {/* Products Collapsible Accordion in Mobile */}
               <div>
                 <button
                   onClick={() => setMobileProductsOpen(!mobileProductsOpen)}
@@ -446,64 +866,187 @@ export default function Header({ onOpenQuoteModal }: HeaderProps) {
                   <span>Products ({PRODUCTS.length})</span>
                   <ChevronDown
                     className={`w-4 h-4 transition-transform ${
-                      mobileProductsOpen ? "rotate-180" : ""
+                      mobileProductsOpen ? "rotate-180 text-[#9A5B25]" : ""
                     }`}
                   />
                 </button>
 
                 {mobileProductsOpen && (
-                  <div className="pl-3 pr-2 py-2.5 space-y-3 bg-slate-50 rounded-xl text-sm border border-slate-100 mt-1">
+                  <div className="p-3 space-y-4 bg-slate-50/90 rounded-2xl text-sm border border-slate-200/80 mt-1.5">
                     <Link
                       href="/products"
-                      className="block py-1 px-2 font-bold text-kraft-700 hover:underline"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center justify-between py-2 px-3 rounded-xl bg-white border border-[#EED7BE] font-bold text-xs text-[#A66324] hover:bg-[#FDF5EC] transition-colors shadow-2xs"
                     >
-                      All {PRODUCTS.length} Products Overview →
+                      <span>View All {PRODUCTS.length} Products</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
                     </Link>
 
+                    {/* Mobile Category 1: Paper Tubes & Paper Cores */}
                     <div>
-                      <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                        Paper Tubes &amp; Cores
+                      <div className="flex items-center gap-2 px-2 pb-2 border-b border-[#EED7BE]">
+                        <div className="w-7 h-7 rounded-lg bg-[#FDF5EC] border border-[#F2DEC4] flex items-center justify-center text-[#9A5B25] shrink-0">
+                          <Cylinder className="w-3.5 h-3.5" strokeWidth={1.9} />
+                        </div>
+                        <div>
+                          <div className="text-[11px] font-extrabold uppercase tracking-wider text-industrial-950">
+                            Paper Tubes &amp; Paper Cores ({tubeCoreProducts.length})
+                          </div>
+                          <div className="text-[10px] text-slate-500">
+                            High-strength industrial tubes &amp; cores
+                          </div>
+                        </div>
                       </div>
-                      {tubeCoreProducts.map((p) => (
-                        <Link
-                          key={p.slug}
-                          href={`/products/${p.slug}`}
-                          className="block py-1.5 px-2 text-xs font-medium text-slate-700 hover:text-kraft-700"
-                        >
-                          {p.name}
-                        </Link>
-                      ))}
+                      <div className="space-y-1 mt-2">
+                        {tubeCoreProducts.map((p) => {
+                          const meta = getProductMegaMeta(p.slug);
+                          const IconComponent = meta.icon;
+                          return (
+                            <Link
+                              key={p.slug}
+                              href={`/products/${p.slug}`}
+                              onClick={() => setMobileMenuOpen(false)}
+                              className="group flex items-center justify-between gap-2 py-1.5 px-2 rounded-xl hover:bg-white transition-colors"
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <div
+                                  className={`w-8 h-8 rounded-lg border ${meta.bgClass} flex items-center justify-center shrink-0`}
+                                >
+                                  <IconComponent
+                                    className={`w-4 h-4 ${meta.iconClass}`}
+                                    strokeWidth={1.85}
+                                  />
+                                </div>
+                                <div className="min-w-0">
+                                  <div className="text-xs font-bold text-industrial-950 truncate">
+                                    {p.name}
+                                  </div>
+                                  <div className="text-[10px] text-slate-500 truncate">
+                                    {meta.shortDesc}
+                                  </div>
+                                </div>
+                              </div>
+                              <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            </Link>
+                          );
+                        })}
+                      </div>
                     </div>
 
+                    {/* Mobile Category 2: Corrugated Packaging */}
                     <div>
-                      <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                        Corrugated Packaging
+                      <div className="flex items-center gap-2 px-2 pb-2 border-b border-[#EED7BE]">
+                        <div className="w-7 h-7 rounded-lg bg-[#FDF5EC] border border-[#F2DEC4] flex items-center justify-center text-[#9A5B25] shrink-0">
+                          <Box className="w-3.5 h-3.5" strokeWidth={1.9} />
+                        </div>
+                        <div>
+                          <div className="text-[11px] font-extrabold uppercase tracking-wider text-industrial-950">
+                            Corrugated Packaging
+                          </div>
+                          <div className="text-[10px] text-slate-500">
+                            Durable and sustainable corrugated solutions
+                          </div>
+                        </div>
                       </div>
-                      {corrugatedProducts.map((p) => (
-                        <Link
-                          key={p.slug}
-                          href={`/products/${p.slug}`}
-                          className="block py-1.5 px-2 text-xs font-medium text-slate-700 hover:text-kraft-700"
-                        >
-                          {p.name}
-                        </Link>
-                      ))}
+                      <div className="space-y-1 mt-2">
+                        {corrugatedProducts.map((p) => {
+                          const meta = getProductMegaMeta(p.slug);
+                          const IconComponent = meta.icon;
+                          return (
+                            <Link
+                              key={p.slug}
+                              href={`/products/${p.slug}`}
+                              onClick={() => setMobileMenuOpen(false)}
+                              className="group flex items-center justify-between gap-2 py-1.5 px-2 rounded-xl hover:bg-white transition-colors"
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <div
+                                  className={`w-8 h-8 rounded-lg border ${meta.bgClass} flex items-center justify-center shrink-0`}
+                                >
+                                  <IconComponent
+                                    className={`w-4 h-4 ${meta.iconClass}`}
+                                    strokeWidth={1.85}
+                                  />
+                                </div>
+                                <div className="min-w-0">
+                                  <div className="text-xs font-bold text-industrial-950 truncate">
+                                    {p.shortName}
+                                  </div>
+                                  <div className="text-[10px] text-slate-500 truncate">
+                                    {meta.shortDesc}
+                                  </div>
+                                </div>
+                              </div>
+                              <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            </Link>
+                          );
+                        })}
+                      </div>
                     </div>
 
+                    {/* Mobile Category 3: Other Packaging */}
                     <div>
-                      <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                        Other Packaging Products
+                      <div className="flex items-center gap-2 px-2 pb-2 border-b border-[#BCEAD5]">
+                        <div className="w-7 h-7 rounded-lg bg-[#EEFBF3] border border-[#D1FAE5] flex items-center justify-center text-[#15803D] shrink-0">
+                          <Package className="w-3.5 h-3.5" strokeWidth={1.9} />
+                        </div>
+                        <div>
+                          <div className="text-[11px] font-extrabold uppercase tracking-wider text-industrial-950">
+                            Other Packaging
+                          </div>
+                          <div className="text-[10px] text-slate-500">
+                            Packaging materials and accessories
+                          </div>
+                        </div>
                       </div>
-                      {otherPackagingProducts.map((p) => (
-                        <Link
-                          key={p.slug}
-                          href={`/products/${p.slug}`}
-                          className="block py-1.5 px-2 text-xs font-medium text-slate-700 hover:text-kraft-700"
-                        >
-                          {p.name}
-                        </Link>
-                      ))}
+                      <div className="space-y-1 mt-2">
+                        {otherPackagingProducts.map((p) => {
+                          const meta = getProductMegaMeta(p.slug);
+                          const IconComponent = meta.icon;
+                          return (
+                            <Link
+                              key={p.slug}
+                              href={`/products/${p.slug}`}
+                              onClick={() => setMobileMenuOpen(false)}
+                              className="group flex items-center justify-between gap-2 py-1.5 px-2 rounded-xl hover:bg-white transition-colors"
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <div
+                                  className={`w-8 h-8 rounded-lg border ${meta.bgClass} flex items-center justify-center shrink-0`}
+                                >
+                                  <IconComponent
+                                    className={`w-4 h-4 ${meta.iconClass}`}
+                                    strokeWidth={1.85}
+                                  />
+                                </div>
+                                <div className="min-w-0">
+                                  <div className="text-xs font-bold text-industrial-950 truncate">
+                                    {p.shortName}
+                                  </div>
+                                  <div className="text-[10px] text-slate-500 truncate">
+                                    {meta.shortDesc}
+                                  </div>
+                                </div>
+                              </div>
+                              <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            </Link>
+                          );
+                        })}
+                      </div>
                     </div>
+
+                    {/* Mobile Custom Quote Button inside Accordion */}
+                    <button
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        onOpenQuoteModal();
+                      }}
+                      className="w-full py-2.5 px-4 rounded-xl bg-[#A66324] hover:bg-[#8E521B] text-white text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-colors"
+                    >
+                      <FileText className="w-3.5 h-3.5 text-[#FDE68A]" />
+                      <span>Custom Quote</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 )}
               </div>
